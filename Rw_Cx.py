@@ -164,7 +164,18 @@ class CalcTest(C_Ctr):
         plt.subplot(1,2,2)
         plt.hist(RwC, bins=2*int(max(RwC)-min(RwC)))
         plt.show()
-
+        
+def case_studies():
+    # 4743 VITA 6-16-6.8 (Laminated) (38,34)
+    sspeci = np.array([47, 53, 56, 67, 66])
+    V, S, T, n = 38, 3.6, 0.5, 1
+    L2Limit = 29
+    
+    # 4574 Spanish city 6/12/4/12/8.8 (44.2) guardian triple (39, 35)
+    sspec2 = np.array([57, 59, 64, 85, 79])
+    V, S, T, n = 40.5, 4.0, 0.5, 0
+    L2limt = 38
+    
 
 if __name__=='__main__':
     sourceSpec = np.asarray([60, 53, 56, 67, 66]) # 4743 vita 70 dB(A) 47
