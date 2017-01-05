@@ -57,9 +57,59 @@ def required_RwCtr(L2i, DeltaiCtr, condi):
 
 def required_RwC(L2i, DeltaiC, cond2):
     RwC = cond2 - 10*np.log10(sum(10**((L2i - DeltaiC)/10.)))
+import numpy as np
+import random
+import pandas as pd
+import matplotlib.pylab as plt
+
+
+class C_Ctr():
+    def __init__(self):
+        """ the ranges for C and Ctr testing are based on the Pilkinton and Guardian
+            test data.
+        """
+        self.C = np.asarray([-21,-14,-8,-5,-4])
+        self.Ctr = np.asarray([-14,-10,-7,-4,-6])
+        self.CRange = np.asarray([6,5,5,10,9])/2. # 125 to 2k 
+        self.CtrRange = np.asarray([5,4,7,12,12])/2.# 125 to 2k 
+    
+def Deltai(sourceSpec, refCurve):
+    ''' calculated the normalised Delta, where Delta is the difference 
+        between source and the Ctr or C curve. ref Wei's study
+            sourceSpec: array of source spec
+            refCurve: array of Ctr or C cuver
+            length of sourceSpec and refCurve should match
+    '''
+    return sourceSpec - refCurve
+    
+def norm_Delta(Deltai):
+    v = 10*np.log10(np.sum(10**(Deltai/10.)))
+    normalisedDelta = Deltai - v
+    return normalisedDelta
+
+def L2_i_spec(L2Limit, normalisedDelta):
+    ''' determine the internal noise spectrum based on the difference between 
+        the source and the reference Ctr or C curve. 
+    '''
+    return L2Limit + normalisedDelta
+    
+def room_conditioni(V, S, T):
+    condi = 10.*np.log10(T) + 10.*np.log10(S/V) + 11
+    return condi
+
+def room_condition2(V, T, n):
+    cond2 = 10.*np.log10(T) + 10.*np.log10(n/V) + 21
+    return cond2
+
+def required_RwCtr(L2i, DeltaiCtr, condi):
+    RwCtr = condi - 10*np.log10(sum(10**((L2i - DeltaiCtr)/10.)))
+    return RwCtr
+
+def required_RwC(L2i, DeltaiC, condi):
+    RwC = condi - 10*np.log10(np.sum(10**((L2i - DeltaiC)/10.)))
     return RwC
 
-def calc_singleNo_rating(sourceSpec, L2Limit, V, S, T, n):    
+def calc_singleNo_rating_Wei(sourceSpec, L2Limit, V, S, T, n):    
     ''' sourceSpec = array of source spec
         L2limit = single number in dB(A)
         V = volume in m3
@@ -87,17 +137,16 @@ def calc_singleNo_rating(sourceSpec, L2Limit, V, S, T, n):
     print('normalised Source - C -> ', np.round(normalisedDelta))
     L2i = L2_i_spec(L2Limit, normalisedDelta)  
     print('L2 in octave bands -> ', np.round(L2i))
-    cond2 = room_condition2(V,T,n)
-    print('10*lg(T)+10*lg(n/V)+21 -> ', np.round(cond2))
-    RwC = required_RwC(L2i, DeltaiC, cond2)
+    print('10*lg(T)+10*lg(S/V)+11 -> ', np.round(condi))
+    RwC = required_RwC(L2i, DeltaiC, condi)
     
-    print('\nRequired Rw+Ctr -> %d' %RwCtr)
-    print('Required Rw+C   -> %d' %RwC)
+    print('\nRequired Rw+Ctr ->', int(round(RwCtr)))
+    print('Required Rw+C   -> ', int(round(RwC)))
     print("\n\n")
     
     return [np.round(RwCtr), np.round(RwC)]
 
-class CalcTest(C_Ctr):
+class CalcSNRRandom(C_Ctr):
     def __init__(self, sourceSpec,L2Limit, V, S, T, n):
         C_Ctr.__init__(self)
         self.sp = sourceSpec
@@ -129,7 +178,7 @@ class CalcTest(C_Ctr):
     
     def _run_test(self):
         condi = room_conditioni(self.V,self.S, self.T)
-        cond2 = room_condition2(self.V, self.T, self.n)
+#        cond2 = room_condition2(self.V, self.T, self.n)
         L2is = []
         RwCtr, RwC = [], []
         for refSpec, variation in zip(self.refSpecs, self.variations):
@@ -138,14 +187,18 @@ class CalcTest(C_Ctr):
             vari  = 10.*np.log10(np.sum(10**((L2i - self.Deltai_Ctr)/10)))
             var2 = 10.*np.log10(np.sum(10**((L2i - self.Deltai_C)/10)))
             RwCtr += [condi - vari]
-            RwC += [cond2 - var2]
+            RwC += [condi - var2]
         
         outputRwCtr = pd.Series(RwCtr)
         print("\nRw+Ctr statistics: ")
-        print(outputRwCtr.describe())
+        RwCtrStat = outputRwCtr.describe()
+        RwCtrStat.to_csv('RwCtr Statistics.txt', sep = ' ')
+        print(RwCtrStat)
         outputRwC = pd.Series(RwC)
         print("\nRw+C statistics: ")
-        print(outputRwC.describe())
+        RwCStat = outputRwC.describe()
+        RwCStat.to_csv('RwC Statistics.txt', sep = ' ')
+        print(RwCStat)
         
         
         # print required Rw+Ctr, Rw+C
@@ -164,23 +217,32 @@ class CalcTest(C_Ctr):
         plt.subplot(1,2,2)
         plt.hist(RwC, bins=2*int(max(RwC)-min(RwC)))
         plt.show()
-        
+
 def case_studies():
     # 4743 VITA 6-16-6.8 (Laminated) (38,34)
     sspeci = np.array([47, 53, 56, 67, 66])
     V, S, T, n = 38, 3.6, 0.5, 1
-    L2Limit = 29
+    L2Limit = 29 # 29
     
     # 4574 Spanish city 6/12/4/12/8.8 (44.2) guardian triple (39, 35)
     sspec2 = np.array([57, 59, 64, 85, 79])
-    V, S, T, n = 40.5, 4.0, 0.5, 0
-    L2limt = 38
+    V2, S2, T2, n2 = 40.5, 4.0, 0.5, 0
+    L2limit2 = 42 # 38
     
-
+    # Traffic envelope upper limits
+    sspec3 = np.array([60.4, 63.1, 65.4, 64.1, 59.2])
+    V3, S3, T3, n3 = 45, 2.4, 0.5, 0
+    L2limit3 = 35 
+    
+    # Traffic envelope lower limits
+    sspec4 = np.array([49.0, 56.9, 61.0, 67.6, 63.9])
+    V4, S4, T4, n4 = 45, 2.4, 0.5, 0
+    L2limit4 = 35
+    
+    return [sspec4, V4, S4, T4, n4, L2limit4]
+    
 if __name__=='__main__':
-    sourceSpec = np.asarray([60, 53, 56, 67, 66]) # 4743 vita 70 dB(A) 47
-    V, S, T, n = 38, 3.6, 0.5, 1
-    L2Limit = 30
-    [RwCtr, RwC] = calc_singleNo_rating(sourceSpec, L2Limit, V, S, T, n)
-    objtest = CalcTest(sourceSpec, L2Limit, V, S, T, n)
+    [sourceSpec, V, S, T, n, L2Limit]=case_studies() 
+    [RwCtr, RwC] = calc_singleNo_rating_Wei(sourceSpec, L2Limit, V, S, T, n)
+    objtest = CalcSNRRandom(sourceSpec, L2Limit, V, S, T, n)
     objtest._run_test()
