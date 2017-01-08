@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Jul 28 15:55:16 2016
-
-Calculate the minimum required Rw+Ctr or Rw+C
-
-@author: Weigang Wei
+Calcualte acoustically required single number rating for glaizng and ventilation strategy. 
+Author: Weigang Wei
 """
-
 import numpy as np
 import random
 import pandas as pd
@@ -20,59 +15,15 @@ class C_Ctr():
         """
         self.C = np.asarray([-21,-14,-8,-5,-4])
         self.Ctr = np.asarray([-14,-10,-7,-4,-6])
-        self.CRange = np.asarray([6,5,5,10,9])/2. # 125 to 2k 
-        self.CtrRange = np.asarray([5,4,7,12,12])/2.# 125 to 2k 
-    
-def Deltai(sourceSpec, refCurve):
-    ''' calculated the normalised Delta, where Delta is the difference 
-        between source and the Ctr or C curve. ref Wei's study
-            sourceSpec: array of source spec
-            refCurve: array of Ctr or C cuver
-            length of sourceSpec and refCurve should match
-    '''
-    return sourceSpec - refCurve
-    
-def norm_Delta(Deltai):
-    v = 10*np.log10(sum(10**(Deltai/10.)))
-    normalisedDelta = Deltai - v
-    return normalisedDelta
-
-def L2_i_spec(L2Limit, normalisedDelta):
-    ''' determine the internal noise spectrum based on the difference between 
-        the source and the reference Ctr or C curve. 
-    '''
-    return L2Limit + normalisedDelta
-    
-def room_conditioni(V, S, T):
-    condi = 10.*np.log10(T) + 10.*np.log10(S/V) + 11
-    return condi
-
-def room_condition2(V, T, n):
-    cond2 = 10.*np.log10(T) + 10.*np.log10(n/V) + 21
-    return cond2
-
-def required_RwCtr(L2i, DeltaiCtr, condi):
-    RwCtr = condi - 10*np.log10(sum(10**((L2i - DeltaiCtr)/10.)))
-    return RwCtr
-
-def required_RwC(L2i, DeltaiC, cond2):
-    RwC = cond2 - 10*np.log10(sum(10**((L2i - DeltaiC)/10.)))
-import numpy as np
-import random
-import pandas as pd
-import matplotlib.pylab as plt
+        self.CRange = np.asarray([6,5,5,11,9])/2. # 125 to 2k 
+        self.CtrRange = np.asarray([6,4,6,11,12])/2.# 125 to 2k 
 
 
-class C_Ctr():
+class L2i():
     def __init__(self):
-        """ the ranges for C and Ctr testing are based on the Pilkinton and Guardian
-            test data.
-        """
-        self.C = np.asarray([-21,-14,-8,-5,-4])
-        self.Ctr = np.asarray([-14,-10,-7,-4,-6])
-        self.CRange = np.asarray([6,5,5,10,9])/2. # 125 to 2k 
-        self.CtrRange = np.asarray([5,4,7,12,12])/2.# 125 to 2k 
-    
+        self.medGlazSpec = np.array([-24., -19., -10., -4., -3.]) # normalised to 0 dB
+        
+        
 def Deltai(sourceSpec, refCurve):
     ''' calculated the normalised Delta, where Delta is the difference 
         between source and the Ctr or C curve. ref Wei's study
@@ -146,9 +97,10 @@ def calc_singleNo_rating_Wei(sourceSpec, L2Limit, V, S, T, n):
     
     return [np.round(RwCtr), np.round(RwC)]
 
-class CalcSNRRandom(C_Ctr):
+class CalcSNRRandom(C_Ctr, L2i):
     def __init__(self, sourceSpec,L2Limit, V, S, T, n):
         C_Ctr.__init__(self)
+        L2i.__init__(self)
         self.sp = sourceSpec
         self.L2Limit = L2Limit
         self.V = V
@@ -158,10 +110,10 @@ class CalcSNRRandom(C_Ctr):
         self.NUM = 10000
         self.Deltai_Ctr = self.sp - self.Ctr
         self.Deltai_C = self.sp - self.C
-        self.refSpecs = [self.Deltai_Ctr, self.Deltai_C]  #assume the initial L2,i spectrum
-        self.variations = [self.CtrRange, self.CRange]
+        self.refSpec = [0, 0, 0, 0, 0]
+        self.variation = (self.CtrRange + self.CRange)/2.
         
-    def _generate_spec(self, refSpec, variation):   
+    def _generate_L2_spec(self, refSpec, variation):   
         print("L2,i variation: ", variation)
         specs = []
         for num in range(self.NUM):
@@ -170,7 +122,7 @@ class CalcSNRRandom(C_Ctr):
                 spec.append(round(random.uniform(s-v, s+v))) # use the closest integer
             
             specA = np.asarray(spec)
-            total = 10.*np.log10(sum(10**(specA/10)))
+            total = 10.*np.log10(np.sum(10**(specA/10)))
             specA = specA - total + self.L2Limit
 #            print('specA - > ', np.round(specA))
             specs.append(specA)
@@ -181,23 +133,23 @@ class CalcSNRRandom(C_Ctr):
 #        cond2 = room_condition2(self.V, self.T, self.n)
         L2is = []
         RwCtr, RwC = [], []
-        for refSpec, variation in zip(self.refSpecs, self.variations):
-            L2is += self._generate_spec(refSpec, variation)
+        L2is = self._generate_L2_spec(self.refSpec, self.variation)
+#            
         for L2i in L2is:
             vari  = 10.*np.log10(np.sum(10**((L2i - self.Deltai_Ctr)/10)))
             var2 = 10.*np.log10(np.sum(10**((L2i - self.Deltai_C)/10)))
             RwCtr += [condi - vari]
             RwC += [condi - var2]
-        
+#        
         outputRwCtr = pd.Series(RwCtr)
         print("\nRw+Ctr statistics: ")
         RwCtrStat = outputRwCtr.describe()
-        RwCtrStat.to_csv('RwCtr Statistics.txt', sep = ' ')
+        RwCtrStat.to_csv('RwCtr-Statistics.txt', sep = ' ')
         print(RwCtrStat)
         outputRwC = pd.Series(RwC)
         print("\nRw+C statistics: ")
         RwCStat = outputRwC.describe()
-        RwCStat.to_csv('RwC Statistics.txt', sep = ' ')
+        RwCStat.to_csv('RwC-Statistics.txt', sep = ' ')
         print(RwCStat)
         
         
@@ -210,19 +162,21 @@ class CalcSNRRandom(C_Ctr):
         plt.ylim([bt-5,top+5])
         plt.ylabel('dB')
         plt.grid()
+        plt.savefig('Statistics.png')
         
         plt.figure()
         plt.subplot(1,2,1)
         plt.hist(RwCtr, bins=2*int(max(RwCtr)-min(RwCtr)))
         plt.subplot(1,2,2)
         plt.hist(RwC, bins=2*int(max(RwC)-min(RwC)))
+        plt.savefig('density-function.png')
         plt.show()
 
 def case_studies():
     # 4743 VITA 6-16-6.8 (Laminated) (38,34)
     sspeci = np.array([47, 53, 56, 67, 66])
     V, S, T, n = 38, 3.6, 0.5, 1
-    L2Limit = 29 # 29
+    L2limit = 30 # 29
     
     # 4574 Spanish city 6/12/4/12/8.8 (44.2) guardian triple (39, 35)
     sspec2 = np.array([57, 59, 64, 85, 79])
@@ -239,7 +193,12 @@ def case_studies():
     V4, S4, T4, n4 = 45, 2.4, 0.5, 0
     L2limit4 = 35
     
-    return [sspec4, V4, S4, T4, n4, L2limit4]
+    casei = [sspeci, V, S, T, n, L2limit]
+    case2 = [sspec2, V2, S2, T2, n2, L2limit2]
+    case3 = [sspec3, V3, S3, T3, n3, L2limit3]
+    case4 = [sspec4, V4, S4, T4, n4, L2limit4]
+    
+    return case3
     
 if __name__=='__main__':
     [sourceSpec, V, S, T, n, L2Limit]=case_studies() 
