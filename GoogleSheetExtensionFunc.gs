@@ -135,6 +135,12 @@ function get_Rwx_samples(){
     var IANLwin = 30;
     var IANLvent = 30;
 */
+  /* VSTn = the ceil range include the Volume V in m3, window area, S in m2, reverberation time, T in s, and number of vents
+  for example C2:F2; 
+  sourceSpec = spectrum of the source, from 125 Hz to 2k Hz
+  IANLwin = internal noise level limit intrute through the window
+  IANLvent = internal noise level limit intruted through the vent
+  */
      var V = VSTn[0][0]; 
      var S = VSTn[0][1];
      var T = VSTn[0][2];
