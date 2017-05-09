@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue May  9 21:47:22 2017
-
+    calculate Rw(C;Ctr) from sound reduction index, Ri 
+    main function is Ri_to_Rw_x(Ri)
+    where: 
+        Ri = [n1,n2,..] 5 octave from 125 to 2k or 16 1/3 octave from 100 to 3150 Hz
 @author: W Wei
 """
 import numpy as np
