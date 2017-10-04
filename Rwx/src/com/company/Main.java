@@ -1,25 +1,36 @@
 package com.company;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) {
-	// write your code here
+    public static void main(String[] args) throws Exception {
+        // write your code here
         FindRwX test1 = new FindRwX();
-        double sourceSpec[] = {10,20,30,40,50};
-        double x[] = {-21,-14,-8,-5,-4};
+        double sourceSpec[] = {10, 20, 30, 40, 50};
+        double x[] = {-21, -14, -8, -5, -4};
         double[] c;
-        c = test1.source_minus_x(sourceSpec,x);
-        for (int j=0; j<5; j++) System.out.println(c[j]);
+        c = test1.source_minus_x(sourceSpec, x);
+        for (int j = 0; j < 5; j++) System.out.println(c[j]);
 
-        double a[][] = new double [10][3];
+        double a[][] = new double[10][3];
         System.out.println(a.length);
         System.out.println(a[0].length);
 
+        String fileName = "res/glazing_info.txt";
+        readFilebyScanner rf = new readFilebyScanner();
+        String descriptions [] = rf.readDescription(rf.glazingFile);
+        for (String s:descriptions) System.out.println(s);
+        double values [][] = rf.readRis(rf.glazingFile);
+        for (int i=0; i<values.length;i++){
+            for (int j=0; j<values[0].length; j++){
+                System.out.println(values[i][j]);
+            }
+        }
+        String descriptions2 [] = rf.readDescription(rf.ventFile);
+        for (String s:descriptions2) System.out.println(s);
     }
 
     public static double sum(double numbers[]){
@@ -35,98 +46,52 @@ public class Main {
             max = Math.max(elem, max);
         return max;
     }
+    public static int getNumOfLines(String fileName) throws IOException{
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        int lines = 0;
+        while (reader.readLine() != null) lines++;
+        reader.close();
+        return lines;
+    }
 
-    public class readFilebyScanner{
+    public static class readFilebyScanner{
+        private String glazingFile = "res/glazing_info.txt";
+        private String ventFile = "res/vent_info.txt";
+        private int numOfLines;
 
-        public String [] readGlazingDescription() throws Exception {
+        public String [] readDescription(String fileName) throws Exception {
             // reading a text file line by line using Scanner
-            Scanner sc = new Scanner(new File("res/glazing_info.txt"));
-            int GlineNo = 0;
-            while(sc.hasNext()){
-                GlineNo += 1;
-            }
+            String[] description;
+            Scanner sc = new Scanner(new File(fileName));
+            numOfLines = getNumOfLines(fileName);
 
-            String [] description  = new String [GlineNo-1];
-            int counter = 0;
-            while (sc.hasNext()) {
+            description = new String[numOfLines - 1];
+            for (int cnt=0; cnt<numOfLines; cnt++){
                 String str = sc.nextLine();
-                if (counter>0){
+                if (cnt>0){
                     String [] values = str.split("\\s");
-                    description[counter - 1] = values[0];
+                    description[cnt-1] = values[0];
                 }
-                counter += 1;
             }
             sc.close();
             return description;
         }
 
-        public double [][] readGlazingRis() throws Exception {
+        public double [][] readRis(String fileName) throws Exception {
             // reading a text file line by line using Scanner
-            Scanner sc = new Scanner(new File("res/glazing_info.txt"));
-            int GlineNo = 0;
-            while(sc.hasNext()){
-                GlineNo += 1;
-            }
+            Scanner sc = new Scanner(new File(fileName));
+            numOfLines = getNumOfLines(fileName);
 
-            double [][] numbers = new double[8][GlineNo-1]; // Rw,Rw+C, Rw+Ctr, 125, 250, 500, 1k, 2k
+            double [][] numbers = new double [numOfLines-1][8]; // Rw,Rw+C, Rw+Ctr, 125, 250, 500, 1k, 2k
 
-            int counter = 0;
-            while (sc.hasNext()) {
+            for (int cnt=0; cnt<numOfLines; cnt++){
                 String str = sc.nextLine();
-                if (counter>0){
+                if (cnt>0){
                     String [] values = str.split("\\s");
                     for (int i=1; i<values.length; i++){
-                        numbers[counter - 1][i - 1] = Double.parseDouble(values[i]);
+                        numbers[cnt - 1][i - 1] = Double.parseDouble(values[i]);
                     }
                 }
-                counter += 1;
-            }
-            sc.close();
-            return numbers;
-        }
-
-        public String [] readGlazingDescription() throws Exception {
-            // reading a text file line by line using Scanner
-            Scanner sc = new Scanner(new File("res/glazing_info.txt"));
-            int GlineNo = 0;
-            while(sc.hasNext()){
-                GlineNo += 1;
-            }
-
-            String [] description  = new String [GlineNo-1];
-            int counter = 0;
-            while (sc.hasNext()) {
-                String str = sc.nextLine();
-                if (counter>0){
-                    String [] values = str.split("\\s");
-                    description[counter - 1] = values[0];
-                }
-                counter += 1;
-            }
-            sc.close();
-            return description;
-        }
-
-        public double [][] readGlazingRis() throws Exception {
-            // reading a text file line by line using Scanner
-            Scanner sc = new Scanner(new File("res/glazing_info.txt"));
-            int GlineNo = 0;
-            while(sc.hasNext()){
-                GlineNo += 1;
-            }
-
-            double [][] numbers = new double[8][GlineNo-1]; // Rw,Rw+C, Rw+Ctr, 125, 250, 500, 1k, 2k
-
-            int counter = 0;
-            while (sc.hasNext()) {
-                String str = sc.nextLine();
-                if (counter>0){
-                    String [] values = str.split("\\s");
-                    for (int i=1; i<values.length; i++){
-                        numbers[counter - 1][i - 1] = Double.parseDouble(values[i]);
-                    }
-                }
-                counter += 1;
             }
             sc.close();
             return numbers;
@@ -256,6 +221,7 @@ public class Main {
             double[] DnewCtrVentS = get_statistical_value(DnewCtrVent);
             return DnewCtrVentS;
         }
+
 
         public void get_Rwx_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
             double[][] L2specsWin = gen_internal_spec(L2spcsVariation, IANLwin);

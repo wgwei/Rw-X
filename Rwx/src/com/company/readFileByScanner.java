@@ -1,9 +1,6 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,6 +34,19 @@ public class readFileByScanner {
             System.out.println(word);
         }
         sc2.close();
+    }
+
+    public int numOfLines_method1(String fileName) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        int lines = 0;
+        while (reader.readLine() != null) lines++;
+        reader.close();
+        return lines;
+    }
+
+    public int numOfLines_method2(String fileName) throws IOException{
+        return 1;
+
     }
 }
 //Output
