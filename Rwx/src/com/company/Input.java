@@ -53,6 +53,7 @@ public class Input {
 
         });
         ShowGlaingResluts.setText("hello \n test ");
+        ShowGlaingResluts.setText("\nwww");
     }
 
     public static double sum(double numbers[]){
@@ -67,25 +68,6 @@ public class Input {
         for (double elem : decMax)
             max = Math.max(elem, max);
         return max;
-    }
-
-    public class readFilebyScanner{
-        public void readFile (String[] args) throws Exception {
-            // reading a text file line by line using Scanner
-            System.out.println("Reading a text file line by line: ");
-            Scanner sc = new Scanner(new File("res/file.txt"));
-            while (sc.hasNext()) {
-                String str = sc.nextLine();
-            }
-            sc.close();
-            // reading all words from file using Scanner
-            System.out.println("Reading a text file word by word: ");
-            Scanner sc2 = new Scanner(new File("res/file.txt"));
-            while (sc2.hasNext()) {
-                String word = sc2.next();
-            }
-            sc2.close();
-        }
     }
 
     public static void main(String[] args) {

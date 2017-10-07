@@ -2,35 +2,36 @@ package com.company;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         // write your code here
-        FindRwX test1 = new FindRwX();
-        double sourceSpec[] = {10, 20, 30, 40, 50};
+        double V = 60;
+        double S = 3;
+        double T = 0.5;
+        int n = 1;
+        double sourceSpec[] = {50, 55, 65, 60, 50};
+        double IANLwin = 25;
+        double IANLvent = 33;
+
         double x[] = {-21, -14, -8, -5, -4};
         double[] c;
+        FindRwX test1 = new FindRwX(V, S, T, n, sourceSpec, IANLwin, IANLvent);
         c = test1.source_minus_x(sourceSpec, x);
-        for (int j = 0; j < 5; j++) System.out.println(c[j]);
 
-        double a[][] = new double[10][3];
-        System.out.println(a.length);
-        System.out.println(a[0].length);
-
-        String fileName = "res/glazing_info.txt";
-        readFilebyScanner rf = new readFilebyScanner();
-        String descriptions [] = rf.readDescription(rf.glazingFile);
-        for (String s:descriptions) System.out.println(s);
-        double values [][] = rf.readRis(rf.glazingFile);
-        for (int i=0; i<values.length;i++){
-            for (int j=0; j<values[0].length; j++){
-                System.out.println(values[i][j]);
-            }
-        }
-        String descriptions2 [] = rf.readDescription(rf.ventFile);
-        for (String s:descriptions2) System.out.println(s);
+        test1.find_suitable_glass();
+        double [] RwPlusC = test1.get_RwPlusC_samples();
+        double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
+        double [] DnewPlusC = test1.get_DnewPlusC_samples();
+        double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
+        System.out.println("\nprint the statistical values");
+        for (double cc : RwPlusC) System.out.println(cc);
+        for (double cctr : RwPlusCtr) System.out.println(cctr);
+        for (double dd : DnewPlusC) System.out.println(dd);
+        for (double ddtr : DnewPlusC) System.out.println(ddtr);
     }
 
     public static double sum(double numbers[]){
@@ -52,6 +53,12 @@ public class Main {
         while (reader.readLine() != null) lines++;
         reader.close();
         return lines;
+    }
+
+    public static double logsum(double[] spec){
+        double eng = 0;
+        for (double s: spec) eng += Math.pow(10, s / 10);
+        return 10*Math.log10(eng);
     }
 
     public static class readFilebyScanner{
@@ -103,25 +110,40 @@ public class Main {
         double specVariation [] ={6, 5, 6, 11, 11};
         double cNormalised [] = {-21,-14,-8,-5,-4};
         double ctrNormalised [] = {-14,-10,-7,-4,-6};
-        private double[] sourceSpec;
         private int NumOfSpec = 2000;
         double [][] L2spcsVariation = gen_random_spec_variations(NumOfSpec);
+        double  V, S, T, IANLwin, IANLvent;
+        int n;
+        private double[] sourceSpec;
+
+        public FindRwX(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent){
+            this.V = V;
+            this.S = S;
+            this.T = T;
+            this.n = n;
+            this.sourceSpec = sourceSpec;
+            this.IANLwin = IANLwin;
+            this.IANLvent = IANLvent;
+        }
 
         protected int random_int_between(double a, double b){
             return (int) Math.floor(Math.random() * (b-a) + a);
         }
 
-        public double room_conditioni(double V, double S, double T){
+        public double room_conditioni(){
             return 10* Math.log10(T) + 10* Math.log10(S/V) + 11;
         }
 
-        public double room_condition2(double V, double S, double T, int n){
+        public double room_condition2(){
              return 10* Math.log10(T) + 10* Math.log10(n/V) + 21;
         }
 
-        protected double[] source_minus_x(double[] sourceSpec, double[] x){
-            double sourceMinusX []  = new double[x.length];
-            for (int i=0; i<x.length; i++) sourceMinusX[i] = sourceSpec[i] - x[i];
+        public double[] source_minus_x(double [] sourceSpec, double[] x){
+            double [] sourceMinusX  = new double[5];
+            for (int i=0; i<5; i++) {
+                sourceMinusX[i] = 5;
+                sourceMinusX[i] = sourceSpec[i] - x[i];
+            }
             return sourceMinusX;
         }
 
@@ -172,10 +194,10 @@ public class Main {
             double C50perRange = C25 - C75;
             return new double[]{Cmax, C5, C10, C25, C75, C50perRange};
         }
-        public double [] get_RwPlusC_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
+        public double [] get_RwPlusC_samples() {
             double[][] L2specsWin = gen_internal_spec(L2spcsVariation, IANLwin);
-            double[] sourceMinusC = source_minus_x(sourceSpec, cNormalised);
-            double roomConditioni = room_conditioni(V, S, T);
+            double[] sourceMinusC = source_minus_x(sourceSpec,cNormalised);
+            double roomConditioni = room_conditioni();
             double[] RwC = r_x(sourceMinusC, roomConditioni, L2specsWin);
 
             // return {Cmax, C5, C10, C25, C75, C50perRange};
@@ -183,12 +205,10 @@ public class Main {
             return  RwCwinS;
         }
 
-        public double [] get_RwPlusCtr_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
+        public double [] get_RwPlusCtr_samples() {
             double[][] L2specsWin = gen_internal_spec(L2spcsVariation, IANLwin);
-
-            double[] sourceMinusCtr = source_minus_x(sourceSpec, ctrNormalised);
-            double roomConditioni = room_conditioni(V, S, T);
-
+            double [] sourceMinusCtr = source_minus_x(sourceSpec, ctrNormalised);
+            double roomConditioni = room_conditioni();
             double[] RwCtr = r_x(sourceMinusCtr, roomConditioni, L2specsWin);
 
             // return {Cmax, C5, C10, C25, C75, C50perRange};
@@ -196,12 +216,10 @@ public class Main {
             return RwCtrWinS;
         }
 
-        public double [] get_DnewPlusC_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
+        public double [] get_DnewPlusC_samples() {
             double[][] L2specsVent = gen_internal_spec(L2spcsVariation, IANLvent);
-
-            double[] sourceMinusC = source_minus_x(sourceSpec, cNormalised);
-            double roomCondition2 = room_condition2(V, S, T, n);
-
+            double [] sourceMinusC = source_minus_x(sourceSpec,cNormalised);
+            double roomCondition2 = room_condition2();
             double[] DnewCvent = r_x(sourceMinusC, roomCondition2, L2specsVent);
 
             // return {Cmax, C5, C10, C25, C75, C50perRange};
@@ -209,12 +227,10 @@ public class Main {
             return DnewCventS;
         }
 
-        public double [] get_DnewPlusCtr_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
+        public double [] get_DnewPlusCtr_samples() {
             double[][] L2specsVent = gen_internal_spec(L2spcsVariation, IANLvent);
-
-            double[] sourceMinusCtr = source_minus_x(sourceSpec, ctrNormalised);
-            double roomCondition2 = room_condition2(V, S, T, n);
-
+            double [] sourceMinusCtr = source_minus_x(sourceSpec,ctrNormalised);
+            double roomCondition2 = room_condition2();
             double[] DnewCtrVent = r_x(sourceMinusCtr, roomCondition2, L2specsVent);
 
             // return {Cmax, C5, C10, C25, C75, C50perRange};
@@ -223,123 +239,25 @@ public class Main {
         }
 
 
-        public void get_Rwx_samples(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
-            double[][] L2specsWin = gen_internal_spec(L2spcsVariation, IANLwin);
-            double[][] L2specsVent = gen_internal_spec(L2spcsVariation, IANLvent);
-
-            double[] sourceMinusC = source_minus_x(sourceSpec, cNormalised);
-            double[] sourceMinusCtr = source_minus_x(sourceSpec, ctrNormalised);
-            double roomConditioni = room_conditioni(V, S, T);
-            double roomCondition2 = room_condition2(V, S, T, n);
-
-            double[] RwC = r_x(sourceMinusC, roomConditioni, L2specsWin);
-            double[] RwCtr = r_x(sourceMinusCtr, roomConditioni, L2specsWin);
-
-            double[] DnewCvent = r_x(sourceMinusC, roomCondition2, L2specsVent);
-            double[] DnewCtrVent = r_x(sourceMinusCtr, roomCondition2, L2specsVent);
-
-            // sort smallest to largest for glazing spec and get statistical value
-            // return {Cmax, C5, C10, C25, C75, C50perRange};
-            double[] RwCwinS = get_statistical_value(RwC);
-            double[] RwCtrWinS = get_statistical_value(RwCtr);
-            double[] DnewCventS = get_statistical_value(DnewCvent);
-            double[] DnewCtrVentS = get_statistical_value(DnewCtrVent);
-
-            // recommended glazing parameter
-            if (RwCwinS[RwCwinS.length - 1] > RwCtrWinS[RwCtrWinS.length - 1]) {
-                String recommendedGlaze = "Rw+Ctr";
-            } else {
-                String recommendedGlaze = "Rw+C";
+        //public List <String> find_suitable_glass() throws Exception {
+        public double[][] find_suitable_glass() throws Exception {
+            double [][] levels = new double [500][6];
+            double roomConditioni = room_conditioni();
+            readFilebyScanner glass = new readFilebyScanner();
+            String glassDescription [] = glass.readDescription(glass.glazingFile);
+            double Ris[][] = glass.readRis(glass.glazingFile);
+            int dataLen = glassDescription.length;
+            for (int i=0; i<dataLen; i++){
+                double[] fe = new double[5]; // 5 octave between 125 Hz and 2k Hz
+                for (int j=3; j<8; j++){
+                    fe[j-3] = sourceSpec[j-3] - Ris[i][j] + roomConditioni;
+                }
+                double IANL = logsum(fe);
+                if(IANL<IANLwin){
+                    System.out.println(glassDescription[i]);
+                }
             }
-            // recommended vent spec
-            if (DnewCventS[DnewCventS.length - 1] > DnewCtrVentS[DnewCtrVentS.length - 1]) {
-                String recommendVent = "Dne,w+Ctr";
-            } else {
-                String recommendVent = "Dne,w+C";
-            }
-
-//            var titles = ["Parameter", "0%", "10%", "25%", "75%", "25% to 75%", "Recommended para"];
-//            var statisticalReturn = [titles,["Glazing Rw+C", Cmax, C10, C25, C75, C50perRange, recommendC],
-//                                         ["Glazing Rw+Ctr", Ctrmax, Ctr10, Ctr25, Ctr75, Ctr50perRange, recommendCtr],
-//                    ["Vent Dne,w+C", CmaxVent, C10Vent, C25Vent, C75Vent, C50perRangeVent, recommendVentC],
-//                    ["Vent Dne,w+Ctr", CtrmaxVent, Ctr10Vent, Ctr25Vent, Ctr75Vent, Ctr50perRangeVent, recommendVentCtr]]
-//            ;
-
-//
-//            // read glass and vent data from the sheets
-//            var ss = SpreadsheetApp.getActiveSpreadsheet();
-//            var Loc125Hz = 5;
-//            var Loc2kHz = 9;
-//
-//            // process glass
-//            var glassSheet = ss.getSheetByName("glazing data");
-//            var glassRange = glassSheet.getDataRange(); // glass data
-//            var glassSpec = glassRange.getValues(); // object [][]
-//            var glassL2 = [];
-//            for (var i = 1; i < glassSpec.length; i++) { //loop row
-//                var L2f = [];
-//                for (var j = Loc125Hz; j < Loc2kHz; j++) {
-//                    if (glassSpec[i][j]) {
-//                        L2f.push(sourceSpec[0][j-Loc125Hz] - glassSpec[i][j] + roomConditions[0]); // sourceSpec start from location 0
-//                    }
-//                }
-//                var energy = 0.0;
-//                for (var f=0; f<L2f.length; f++){
-//                    energy = energy + Math.pow(10, L2f[f]/10);
-//                }
-//                var L2 = 10*log10(energy);
-//                if (L2<=IANLwin){
-//                    glassL2.push([glassSpec[i][1], glassSpec[i][3], glassSpec[i][4], L2]);
-//                }
-//            }
-//
-//            // process vent
-//            var ventSheet = ss.getSheetByName("vent data");
-//            var ventRange = ventSheet.getDataRange(); // vent data
-//            var ventSpec = ventRange.getValues(); //object [][]
-//            var ventL2 = [];
-//            for (var m = 1; m < ventSpec.length; m++) { //loop row
-//                var L2fVent = [];
-//                for (var n = Loc125Hz; n < Loc2kHz; n++) {
-//                    if (ventSpec[m][n]) {
-//                        L2fVent.push(sourceSpec[0][n-Loc125Hz] - ventSpec[m][n] + roomConditions[1]);
-//                    }
-//                }
-//                var energy = 0.0;
-//                for (var f=0; f<L2fVent.length; f++){
-//                    energy = energy + Math.pow(10, L2fVent[f]/10);
-//                }
-//                var L2 = 10*log10(energy);
-//                if (L2<=IANLvent){
-//                    ventL2.push([ventSpec[m][1], ventSpec[m][3], ventSpec[m][4], L2]);
-//                }
-//            }
-//
-//            var titles2 = ["Producer", "Rw + C", "Rw + Ctr", "Internal noise level, dB(A)"];
-//            statisticalReturn.push(" ");
-//            statisticalReturn.push(titles2);
-//            if (glassL2.length<1){
-//                statisticalReturn.push("No glass data feasible");
-//            }
-//            else{
-//                for (var p=0; p<glassL2.length; p++){
-//                    statisticalReturn.push(glassL2[p]);
-//                }
-//            }
-//
-//            var titles3 = ["Producer", "Dne,w + C", "Dne,w + Ctr", "Internal noise level, dB(A)"];
-//            statisticalReturn.push(" ");
-//            statisticalReturn.push(titles3);
-//            if (ventL2.length<1){
-//                statisticalReturn.push("No vent data feasible");
-//            }
-//            else{
-//                for (var q=0; q<ventL2.length; q++){
-//                    statisticalReturn.push(ventL2[q]);
-//                }
-//            }
-//
-//            return statisticalReturn;
+            return levels;
         }
     }
 }
