@@ -16,6 +16,11 @@ public class Main {
         return result;
     }
 
+    public static double roundOffat2(double v){
+        return Math.round(v*100.0)/100.0;
+    }
+
+
     public static double getMax(double [] decMax) {
         double max = decMax[0];
         for (double elem : decMax)
@@ -39,6 +44,8 @@ public class Main {
     public static class readFilebyScanner{
         private String glazingFile = "res/glazing_info.txt";
         private String ventFile = "res/vent_info.txt";
+        private String glazingCVS = "res/glazing_info.txt";
+        private String ventCVS = "res/vent_info.txt";
         private int numOfLines;
 
         public String [] readDescription(String fileName) throws Exception {
@@ -253,6 +260,7 @@ public class Main {
             for (double s: super.sourceSpec) System.out.println(s);
         }
 
+
         public double[][] find_suitable_glass() throws Exception {
             int dataLen = glassDescription.length;
             int cnt = 0;
@@ -303,6 +311,80 @@ public class Main {
             return cnt-1;
         }
     }
+
+    public static String convert_prediction_to_String(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
+        String RwPlusCString,RwPlusCtrString,  DnewPlusCString, DnewPlusCtrString;
+
+        FindRwX test1 = new FindRwX(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+
+        //{Cmax, C5, C10, C25, C75, C50perRange};
+        double [] RwPlusC = test1.get_RwPlusC_samples();
+        double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
+        double [] DnewPlusC = test1.get_DnewPlusC_samples();
+        double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
+        String headinfo = "Para\t\t\tMax\t\t\t5%\t\t10%\t\t25%\t\t75%\t\t50% range\n";
+
+        RwPlusCString="Glazing Rw+C\t";
+        for (int c=0; c<5; c++){
+            RwPlusCString += Double.toString((int) RwPlusC[c])+"\t\t";
+        }
+        RwPlusCString += Double.toString(roundOffat2(RwPlusC[5])) + "\n";
+
+        RwPlusCtrString="Glazing Rw+Ctr\t";
+        for (int c=0; c<5; c++){
+            RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+"\t\t";
+        }
+        RwPlusCtrString += Double.toString(roundOffat2(RwPlusCtr[5])) + "\n";
+
+        DnewPlusCString="Vent Dnew+C\t\t";
+        for (int c=0; c<5; c++){
+            DnewPlusCString += Double.toString((int) DnewPlusC[c])+"\t\t";
+        }
+        DnewPlusCString += Double.toString(roundOffat2(DnewPlusC[5])) + "\n";
+
+        DnewPlusCtrString="Vent Dnew+Ctr\t";
+        for (int c=0; c<5; c++){
+            DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+"\t\t";
+        }
+        DnewPlusCtrString += Double.toString(roundOffat2(DnewPlusCtr[5])) + "\n";
+
+
+        String rv = headinfo + RwPlusCString + RwPlusCtrString + DnewPlusCString + DnewPlusCtrString;
+        return rv;
+    }
+
+    public static String convert_checking_to_String(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
+        String suitableGlass,suitableVents;
+
+        ShowOutputs so = new ShowOutputs(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+        double [][] glass = so.find_suitable_glass();
+        double [][] vent = so.find_suitable_vent();
+        int cntGlass = so.valid_ID(glass);
+        int cntVent = so.valid_ID(vent);
+
+        suitableGlass = "\n\nGlass\t\t\t\t\t\t\t\tIANL\t125Hz\t250Hz\t500Hz\t1kHz\t2kHz\n";
+        for (int p=0; p<cntGlass; p++){
+            suitableGlass += so.glassDescription[(int) glass[p][0]] + "\t\t";
+            for (int q=1; q<7; q++){
+                suitableGlass += Double.toString(Math.round(glass[p][q])) + "\t";
+            }
+            suitableGlass += "\n";
+        }
+
+        suitableVents = "\n\nVent\t\t\t\t\t\t\t\tIANL\t125Hz\t250Hz\t500Hz\t1kHz\t2kHz\n";
+        for (int p=0; p<cntVent; p++){
+            suitableVents += so.ventDescription[(int) vent[p][0]] + "\t\t";
+            for (int q=1; q<7; q++){
+                suitableVents += Double.toString(Math.round(vent[p][q])) + "\t";
+            }
+            suitableVents += "\n";
+        }
+
+
+        String rv = suitableGlass + suitableVents;
+        return rv;
+    }
+
     public static void main(String[] args) throws Exception {
         // write your code here
         double V = 60;
@@ -310,33 +392,23 @@ public class Main {
         double T = 0.5;
         int n = 1;
         double sourceSpec[] = {50, 55, 65, 60, 50};
-        double IANLwin = 25;
-        double IANLvent = 33;
+        double IANLwin = 50;
+        double IANLvent = 50;
 
-        double x[] = {-21, -14, -8, -5, -4};
-        double[] c;
-        FindRwX test1 = new FindRwX(V, S, T, n, sourceSpec, IANLwin, IANLvent);
-        c = test1.source_minus_x(sourceSpec, x);
-        ShowOutputs so = new ShowOutputs(V, S, T, n, sourceSpec, IANLwin, IANLvent);
-        so.testPassing();
-        double [][] glass = so.find_suitable_glass();
-        double [][] vent = so.find_suitable_vent();
-        int cntGlass = so.valid_ID(glass);
-        int cntVent = so.valid_ID(vent);
-        for (int p=0; p<cntGlass; p++){
-            System.out.println(so.glassDescription[(int) glass[p][0]]);
-            for (double v: glass[p]) System.out.println(v);
-        }
+        String outputs = convert_prediction_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+        System.out.println(outputs);
+//        String checking = convert_checking_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+//        System.out.println(checking);
 
-        double [] RwPlusC = test1.get_RwPlusC_samples();
-        double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
-        double [] DnewPlusC = test1.get_DnewPlusC_samples();
-        double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
-        System.out.println("\nprint the statistical values");
-        for (double cc : RwPlusC) System.out.println(cc);
-        for (double cctr : RwPlusCtr) System.out.println(cctr);
-        for (double dd : DnewPlusC) System.out.println(dd);
-        for (double ddtr : DnewPlusCtr) System.out.println(ddtr);
+//        ShowOutputs so = new ShowOutputs(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+//        so.testPassing();
+//        double [][] glass = so.find_suitable_glass();
+//        double [][] vent = so.find_suitable_vent();
+//        int cntGlass = so.valid_ID(glass);
+//        int cntVent = so.valid_ID(vent);
+//        for (int p=0; p<cntGlass; p++){
+//            System.out.println(so.glassDescription[(int) glass[p][0]]);
+//            for (double v: glass[p]) System.out.println(v);
+//        }
     }
 }
-
