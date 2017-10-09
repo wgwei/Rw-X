@@ -3,6 +3,9 @@ package com.company;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -27,6 +30,13 @@ public class Main {
             max = Math.max(elem, max);
         return max;
     }
+
+    /**
+     *
+     * @param fileName is a .txt or a .csv file name, e.g: "mydata.txt"; or "mydata.csv"
+     * @return number of lines
+     * @throws IOException
+     */
     public static int getNumOfLines(String fileName) throws IOException{
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         int lines = 0;
@@ -44,9 +54,27 @@ public class Main {
     public static class readFilebyScanner{
         private String glazingFile = "res/glazing_info.txt";
         private String ventFile = "res/vent_info.txt";
-        private String glazingCVS = "res/glazing_info.txt";
-        private String ventCVS = "res/vent_info.txt";
+        private String glazingCSV = "res/glazing_info.csv";
+        private String ventCSV = "res/vent_info.csv";
         private int numOfLines;
+        private Path gp = Paths.get("res/glazing_info.csv");
+        private Path vp = Paths.get("res/vent_info.csv");
+
+        public void readCSV(){
+            try{
+                BufferedReader br = Files.newBufferedReader(gp);
+                String line = br.readLine();
+                while (line !=null){
+                    System.out.println(line);
+                    String [] attributes = line.split(",");
+                    for (String s : attributes) System.out.println(s);
+                    line = br.readLine();
+                }
+            }
+            catch (IOException ioe){
+
+            }
+        }
 
         public String [] readDescription(String fileName) throws Exception {
             // reading a text file line by line using Scanner
@@ -397,6 +425,10 @@ public class Main {
 
         String outputs = convert_prediction_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
         System.out.println(outputs);
+        int a = getNumOfLines("res/glazing_info.csv");
+        System.out.println(a);
+        readFilebyScanner fn = new readFilebyScanner();
+        fn.readCSV();
 //        String checking = convert_checking_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
 //        System.out.println(checking);
 
