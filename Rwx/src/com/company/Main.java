@@ -52,28 +52,60 @@ public class Main {
     }
 
     public static class readFilebyScanner{
-        private String glazingFile = "res/glazing_info.txt";
-        private String ventFile = "res/vent_info.txt";
         private String glazingCSV = "res/glazing_info.csv";
         private String ventCSV = "res/vent_info.csv";
         private int numOfLines;
+        private int ngf;
+        private int numOfVentFile;
         private Path gp = Paths.get("res/glazing_info.csv");
         private Path vp = Paths.get("res/vent_info.csv");
+        String [] glassDescription;
+        String [] ventDescription;
+        double [][] glassPerformance;
+        double [][] ventPerformance;
 
-        public void readCSV(){
-            try{
-                BufferedReader br = Files.newBufferedReader(gp);
-                String line = br.readLine();
-                while (line !=null){
-                    System.out.println(line);
-                    String [] attributes = line.split(",");
-                    for (String s : attributes) System.out.println(s);
-                    line = br.readLine();
+        public readFilebyScanner() throws IOException{
+            numOfLines = getNumOfLines(glazingCSV);
+            numOfVentFile = getNumOfLines(ventCSV);
+            String [][] glassStrData = readCSV(gp, numOfLines);
+            String [][] ventStrData = readCSV(vp, numOfVentFile);
+            glassDescription = getDescription(glassStrData);
+            ventDescription = getDescription(ventStrData);
+            glassPerformance = getPerformance(glassStrData);
+            ventPerformance = getPerformance(ventStrData);
+        }
+
+        public String[][] readCSV(Path filePath, int lineNum) throws IOException{
+            BufferedReader br = Files.newBufferedReader(filePath);
+            String line = br.readLine();
+            String [][] strData = new String[lineNum][9]; // description, Rw, Rw+C, Rw+Ctr, 125Hz to 2kHz
+            int n = 0;
+            while (line !=null){
+                String [] attributes = line.split(",");
+                for (int i=0; i<attributes.length; i++){
+                    strData[n][i] = attributes[i];
                 }
+                line = br.readLine();
+                n++;
             }
-            catch (IOException ioe){
+            return strData;
+        }
 
+        public String[] getDescription(String [][] strData){
+            String [] descripion = new String[strData.length-1];
+            for (int i=1; i<strData.length; i++){
+                descripion[i-1] = strData[i][0];
             }
+            return descripion;
+        }
+
+        public double[][] getPerformance(String [][] strData){
+            double [][] perfromance = new double[strData.length-1][9];
+            for (int i=1; i<strData.length; i++){
+                for (int j=1; j<strData[0].length; j++)
+                    perfromance[i-1][j-1] = Double.parseDouble(strData[i][j]);
+            }
+            return perfromance;
         }
 
         public String [] readDescription(String fileName) throws Exception {
@@ -262,10 +294,10 @@ public class Main {
         double [][] levelViaVent = new double [200][7];
 
         readFilebyScanner facade = new readFilebyScanner();
-        String glassDescription [] = facade.readDescription(facade.glazingFile);
-        double Ris[][] = facade.readPerformance(facade.glazingFile);
-        String ventDescription [] = facade.readDescription(facade.ventFile);
-        double Dneis [][] = facade.readPerformance(facade.ventFile);
+        String glassDescription [] = facade.glassDescription;
+        double Ris[][] = facade.glassPerformance;
+        String ventDescription [] = facade.ventDescription;
+        double Dneis [][] = facade.ventPerformance;
 
         public ShowOutputs(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception {
 
@@ -350,27 +382,27 @@ public class Main {
         double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
         double [] DnewPlusC = test1.get_DnewPlusC_samples();
         double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
-        String headinfo = "Para\t\t\tMax\t\t\t5%\t\t10%\t\t25%\t\t75%\t\t50% range\n";
+        String headinfo = "Para\t\t\t\tMax\t\t\t5%\t\t\t10%\t\t\t25%\t\t\t75%\t\t\t50% range\n";
 
-        RwPlusCString="Glazing Rw+C\t";
+        RwPlusCString="Glazing Rw+C\t\t";
         for (int c=0; c<5; c++){
             RwPlusCString += Double.toString((int) RwPlusC[c])+"\t\t";
         }
         RwPlusCString += Double.toString(roundOffat2(RwPlusC[5])) + "\n";
 
-        RwPlusCtrString="Glazing Rw+Ctr\t";
+        RwPlusCtrString="Glazing Rw+Ctr\t\t";
         for (int c=0; c<5; c++){
             RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+"\t\t";
         }
         RwPlusCtrString += Double.toString(roundOffat2(RwPlusCtr[5])) + "\n";
 
-        DnewPlusCString="Vent Dnew+C\t\t";
+        DnewPlusCString="Vent Dnew+C \t\t";
         for (int c=0; c<5; c++){
             DnewPlusCString += Double.toString((int) DnewPlusC[c])+"\t\t";
         }
         DnewPlusCString += Double.toString(roundOffat2(DnewPlusC[5])) + "\n";
 
-        DnewPlusCtrString="Vent Dnew+Ctr\t";
+        DnewPlusCtrString="Vent Dnew+Ctr\t\t";
         for (int c=0; c<5; c++){
             DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+"\t\t";
         }
@@ -420,27 +452,13 @@ public class Main {
         double T = 0.5;
         int n = 1;
         double sourceSpec[] = {50, 55, 65, 60, 50};
-        double IANLwin = 50;
-        double IANLvent = 50;
+        double IANLwin = 30;
+        double IANLvent = 30;
 
         String outputs = convert_prediction_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
         System.out.println(outputs);
-        int a = getNumOfLines("res/glazing_info.csv");
-        System.out.println(a);
-        readFilebyScanner fn = new readFilebyScanner();
-        fn.readCSV();
-//        String checking = convert_checking_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
-//        System.out.println(checking);
 
-//        ShowOutputs so = new ShowOutputs(V, S, T, n, sourceSpec, IANLwin, IANLvent);
-//        so.testPassing();
-//        double [][] glass = so.find_suitable_glass();
-//        double [][] vent = so.find_suitable_vent();
-//        int cntGlass = so.valid_ID(glass);
-//        int cntVent = so.valid_ID(vent);
-//        for (int p=0; p<cntGlass; p++){
-//            System.out.println(so.glassDescription[(int) glass[p][0]]);
-//            for (double v: glass[p]) System.out.println(v);
-//        }
+        String checking = convert_checking_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
+        System.out.println(checking);
     }
 }
