@@ -48,8 +48,23 @@ public class Input {
     private JTextArea Results_pane;
     private JTextArea displayArea;
 
-
     public Input() {
+        try {
+            String [] history = readHistory();
+            volumeM3TextField.setText(history[0]);
+            winAreaM2TextField.setText(history[1]);
+            RTSTextField.setText(history[2]);
+            noOfVentsTextField.setText(history[3]);
+            noiseViaWindowDBTextField.setText(history[4]);
+            noiseViaVentDBTextField.setText(history[5]);
+            a125TextField.setText(history[6]);
+            a250TextField.setText(history[7]);
+            a500TextField.setText(history[8]);
+            a1000TextField.setText(history[9]);
+            a2000TextField.setText(history[10]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         showResultsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

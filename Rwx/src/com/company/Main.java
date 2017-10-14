@@ -111,7 +111,7 @@ public class Main {
 
         public static String [] readHistory() throws Exception{
             String [] history = new String [11];
-            Scanner sc = new Scanner("res/history.txt");
+            Scanner sc = new Scanner(new File("res/history.txt"));
             for (int line=0; line<11; line++){
                 history[line] = sc.nextLine();
             }
