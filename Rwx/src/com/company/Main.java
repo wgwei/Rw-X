@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import javax.swing.*;
 
 public class Main {
 
@@ -55,7 +56,7 @@ public class Main {
         private String glazingCSV = "res/glazing_info.csv";
         private String ventCSV = "res/vent_info.csv";
         private int numOfLines;
-        private int ngf;
+        private int ngf=9;
         private int numOfVentFile;
         private Path gp = Paths.get("res/glazing_info.csv");
         private Path vp = Paths.get("res/vent_info.csv");
@@ -78,11 +79,11 @@ public class Main {
         public String[][] readCSV(Path filePath, int lineNum) throws IOException{
             BufferedReader br = Files.newBufferedReader(filePath);
             String line = br.readLine();
-            String [][] strData = new String[lineNum][9]; // description, Rw, Rw+C, Rw+Ctr, 125Hz to 2kHz
+            String [][] strData = new String[lineNum][ngf]; // description, Rw, Rw+C, Rw+Ctr, 125Hz to 2kHz
             int n = 0;
             while (line !=null){
                 String [] attributes = line.split(",");
-                for (int i=0; i<attributes.length; i++){
+                for (int i=0; i<ngf; i++){
                     strData[n][i] = attributes[i];
                 }
                 line = br.readLine();
@@ -100,12 +101,22 @@ public class Main {
         }
 
         public double[][] getPerformance(String [][] strData){
-            double [][] perfromance = new double[strData.length-1][9];
+            double [][] perfromance = new double[strData.length-1][ngf];
             for (int i=1; i<strData.length; i++){
-                for (int j=1; j<strData[0].length; j++)
+                for (int j=1; j<ngf; j++)
                     perfromance[i-1][j-1] = Double.parseDouble(strData[i][j]);
             }
             return perfromance;
+        }
+
+        public static String [] readHistory() throws Exception{
+            String [] history = new String [11];
+            Scanner sc = new Scanner("res/history.txt");
+            for (int line=0; line<11; line++){
+                history[line] = sc.nextLine();
+            }
+            sc.close();
+            return history;
         }
 
         public String [] readDescription(String fileName) throws Exception {
@@ -182,7 +193,7 @@ public class Main {
             this.IANLwin = IANLwin;
             this.IANLvent = IANLvent;
             this.roomConditioni = super.roomConditioni;
-            this.roomCondition2 = super.roomConditioni;
+            this.roomCondition2 = super.roomCondition2;
         }
 
         protected int random_int_between(double a, double b){
@@ -380,29 +391,29 @@ public class Main {
         double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
         double [] DnewPlusC = test1.get_DnewPlusC_samples();
         double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
-        String headinfo = "Para                    \t0%    5%    10%    25%    75%    50% range\n";
+        String headinfo = "Para                     \t,0%,    5%,    10%,    25%,    75%,    50% range\n";
 
-        RwPlusCString="Glazing Rw  +C  \t";
+        RwPlusCString="Glazing Rw  +C,  \t";
         for (int c=0; c<5; c++){
-            RwPlusCString += Double.toString((int) RwPlusC[c])+"   ";
+            RwPlusCString += Double.toString((int) RwPlusC[c])+",   ";
         }
         RwPlusCString += Double.toString(roundOffat2(RwPlusC[5])) + "\n";
 
-        RwPlusCtrString="Glazing Rw  +Ctr\t";
+        RwPlusCtrString="Glazing Rw  +Ctr,\t";
         for (int c=0; c<5; c++){
-            RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+"  ";
+            RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+",   ";
         }
         RwPlusCtrString += Double.toString(roundOffat2(RwPlusCtr[5])) + "\n";
 
-        DnewPlusCString="Vent    Dnew+C  \t";
+        DnewPlusCString="Vent    Dnew+C,  \t";
         for (int c=0; c<5; c++){
-            DnewPlusCString += Double.toString((int) DnewPlusC[c])+"  ";
+            DnewPlusCString += Double.toString((int) DnewPlusC[c])+",   ";
         }
         DnewPlusCString += Double.toString(roundOffat2(DnewPlusC[5])) + "\n";
 
-        DnewPlusCtrString="Vent    Dnew+Ctr\t";
+        DnewPlusCtrString="Vent    Dnew+Ctr,\t";
         for (int c=0; c<5; c++){
-            DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+"  ";
+            DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+",   ";
         }
         DnewPlusCtrString += Double.toString(roundOffat2(DnewPlusCtr[5])) + "\n";
 
@@ -420,26 +431,26 @@ public class Main {
         int cntGlass = so.valid_ID(glass);
         int cntVent = so.valid_ID(vent);
 
-        suitableGlass = "\nGlass\t\tIANL   125Hz   250Hz   500Hz   1kHz   2kHz\n";
+        suitableGlass = "\nGlass,\t\tIANL,   125Hz,   250Hz,   500Hz,   1kHz,   2kHz\n";
         for (int p=0; p<cntGlass; p++){
             String desc = so.glassDescription[(int) glass[p][0]];
             String spaces = "";
-            for (int space=0; space<40 - desc.length(); space++)  spaces += " ";
-            suitableGlass += desc + spaces + "\t";
+            for (int space=0; space<22 - desc.length(); space++)  spaces += " ";
+            suitableGlass += desc + spaces + ",\t";
             for (int q=1; q<7; q++){
-                suitableGlass += Double.toString(Math.round(glass[p][q])) + "  ";
+                suitableGlass += Double.toString(Math.round(glass[p][q])) + ",    ";
             }
             suitableGlass += "\n";
         }
 
-        suitableVents = "\nVent\t\tIANL   125Hz   250Hz   500Hz   1kHz   2kHz\n";
+        suitableVents = "\nVent,\t\tIANL,  125Hz,  250Hz,  500Hz,  1kHz,  2kHz\n";
         for (int p=0; p<cntVent; p++){
             String desc = so.ventDescription[(int) vent[p][0]];
             String spaces = "";
-            for (int space=0; space<40 - desc.length(); space++)  spaces += " ";
-            suitableVents += desc + spaces + "\t";
+            for (int space=0; space<22 - desc.length(); space++)  spaces += " ";
+            suitableVents += desc + spaces + ",\t";
             for (int q=1; q<7; q++){
-                suitableVents += Double.toString(Math.round(vent[p][q])) + "  ";
+                suitableVents += Double.toString(Math.round(vent[p][q])) + ",    ";
             }
             suitableVents += "\n";
         }
@@ -464,5 +475,14 @@ public class Main {
 
         String checking = convert_checking_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
         System.out.println(checking);
+
+        JFileChooser f = new JFileChooser();
+        f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        f.showSaveDialog(null);
+
+        System.out.println(f.getCurrentDirectory());
+        System.out.println(f.getSelectedFile());
+
+
     }
 }
