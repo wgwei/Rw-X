@@ -12,7 +12,7 @@ import static com.company.Main.convert_checking_to_String;
 import static com.company.Main.convert_prediction_to_String;
 import static com.company.Main.readFilebyScanner.readHistory;
 
-public class Input {
+public class Xw_Cx {
     private JPanel Input;
     private JTextField volumeM3TextField;
     private JTextField winAreaM2TextField;
@@ -48,7 +48,7 @@ public class Input {
     private JTextArea Results_pane;
     private JTextArea displayArea;
 
-    public Input() {
+    public Xw_Cx() {
         try {
             String [] history = readHistory();
             volumeM3TextField.setText(history[0]);
@@ -140,8 +140,8 @@ public class Input {
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Input");
-        frame.setContentPane(new Input().Input);
+        JFrame frame = new JFrame("Xw_Cx");
+        frame.setContentPane(new Xw_Cx().Input);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);  // *** this will center your app ***
