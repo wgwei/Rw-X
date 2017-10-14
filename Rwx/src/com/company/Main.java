@@ -148,10 +148,9 @@ public class Main {
     }
 
     public static class GeneralInputs{
-        double  V, S, T, IANLwin, IANLvent, roomConditioni, roomCondition2;
-        int n;
+        double  V, S, T, n, IANLwin, IANLvent, roomConditioni, roomCondition2;
         private double[] sourceSpec;
-        public GeneralInputs(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent) {
+        public GeneralInputs(double V, double S, double T, double n, double [] sourceSpec, double IANLwin, double IANLvent) {
             this.V = V;
             this.S = S;
             this.T = T;
@@ -170,11 +169,10 @@ public class Main {
         double ctrNormalised [] = {-14,-10,-7,-4,-6};
         private int NumOfSpec = 2000;
         double [][] L2spcsVariation = gen_random_spec_variations(NumOfSpec);
-        double  V, S, T, IANLwin, IANLvent, roomConditioni, roomCondition2;
-        int n;
+        double  V, S, T, n, IANLwin, IANLvent, roomConditioni, roomCondition2;
         private double[] sourceSpec;
 
-        public FindRwX(double V, double S, double T, int n, double [] sourceSpec, double IANLwin, double IANLvent){
+        public FindRwX(double V, double S, double T, double n, double [] sourceSpec, double IANLwin, double IANLvent){
             super(V, S, T, n, sourceSpec, IANLwin, IANLvent);
             this.V = V;
             this.S = S;
@@ -299,7 +297,7 @@ public class Main {
         String ventDescription [] = facade.ventDescription;
         double Dneis [][] = facade.ventPerformance;
 
-        public ShowOutputs(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception {
+        public ShowOutputs(double V, double S, double T, double n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception {
 
             super(V, S, T, n, sourceSpec, IANLwin, IANLvent);
 
@@ -372,7 +370,7 @@ public class Main {
         }
     }
 
-    public static String convert_prediction_to_String(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
+    public static String convert_prediction_to_String(double V, double S, double T, double n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
         String RwPlusCString,RwPlusCtrString,  DnewPlusCString, DnewPlusCtrString;
 
         FindRwX test1 = new FindRwX(V, S, T, n, sourceSpec, IANLwin, IANLvent);
@@ -382,29 +380,29 @@ public class Main {
         double [] RwPlusCtr = test1.get_RwPlusCtr_samples();
         double [] DnewPlusC = test1.get_DnewPlusC_samples();
         double [] DnewPlusCtr = test1.get_DnewPlusCtr_samples();
-        String headinfo = "Para\t\t\t\tMax\t\t\t5%\t\t\t10%\t\t\t25%\t\t\t75%\t\t\t50% range\n";
+        String headinfo = "Para                    \t0%    5%    10%    25%    75%    50% range\n";
 
-        RwPlusCString="Glazing Rw+C\t\t";
+        RwPlusCString="Glazing Rw  +C  \t";
         for (int c=0; c<5; c++){
-            RwPlusCString += Double.toString((int) RwPlusC[c])+"\t\t";
+            RwPlusCString += Double.toString((int) RwPlusC[c])+"   ";
         }
         RwPlusCString += Double.toString(roundOffat2(RwPlusC[5])) + "\n";
 
-        RwPlusCtrString="Glazing Rw+Ctr\t\t";
+        RwPlusCtrString="Glazing Rw  +Ctr\t";
         for (int c=0; c<5; c++){
-            RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+"\t\t";
+            RwPlusCtrString += Double.toString((int) RwPlusCtr[c])+"  ";
         }
         RwPlusCtrString += Double.toString(roundOffat2(RwPlusCtr[5])) + "\n";
 
-        DnewPlusCString="Vent Dnew+C \t\t";
+        DnewPlusCString="Vent    Dnew+C  \t";
         for (int c=0; c<5; c++){
-            DnewPlusCString += Double.toString((int) DnewPlusC[c])+"\t\t";
+            DnewPlusCString += Double.toString((int) DnewPlusC[c])+"  ";
         }
         DnewPlusCString += Double.toString(roundOffat2(DnewPlusC[5])) + "\n";
 
-        DnewPlusCtrString="Vent Dnew+Ctr\t\t";
+        DnewPlusCtrString="Vent    Dnew+Ctr\t";
         for (int c=0; c<5; c++){
-            DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+"\t\t";
+            DnewPlusCtrString += Double.toString((int) DnewPlusCtr[c])+"  ";
         }
         DnewPlusCtrString += Double.toString(roundOffat2(DnewPlusCtr[5])) + "\n";
 
@@ -413,7 +411,7 @@ public class Main {
         return rv;
     }
 
-    public static String convert_checking_to_String(double V, double S, double T, int n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
+    public static String convert_checking_to_String(double V, double S, double T, double n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception{
         String suitableGlass,suitableVents;
 
         ShowOutputs so = new ShowOutputs(V, S, T, n, sourceSpec, IANLwin, IANLvent);
@@ -422,20 +420,26 @@ public class Main {
         int cntGlass = so.valid_ID(glass);
         int cntVent = so.valid_ID(vent);
 
-        suitableGlass = "\n\nGlass\t\t\t\t\t\t\t\tIANL\t125Hz\t250Hz\t500Hz\t1kHz\t2kHz\n";
+        suitableGlass = "\nGlass\t\tIANL   125Hz   250Hz   500Hz   1kHz   2kHz\n";
         for (int p=0; p<cntGlass; p++){
-            suitableGlass += so.glassDescription[(int) glass[p][0]] + "\t\t";
+            String desc = so.glassDescription[(int) glass[p][0]];
+            String spaces = "";
+            for (int space=0; space<40 - desc.length(); space++)  spaces += " ";
+            suitableGlass += desc + spaces + "\t";
             for (int q=1; q<7; q++){
-                suitableGlass += Double.toString(Math.round(glass[p][q])) + "\t";
+                suitableGlass += Double.toString(Math.round(glass[p][q])) + "  ";
             }
             suitableGlass += "\n";
         }
 
-        suitableVents = "\n\nVent\t\t\t\t\t\t\t\tIANL\t125Hz\t250Hz\t500Hz\t1kHz\t2kHz\n";
+        suitableVents = "\nVent\t\tIANL   125Hz   250Hz   500Hz   1kHz   2kHz\n";
         for (int p=0; p<cntVent; p++){
-            suitableVents += so.ventDescription[(int) vent[p][0]] + "\t\t";
+            String desc = so.ventDescription[(int) vent[p][0]];
+            String spaces = "";
+            for (int space=0; space<40 - desc.length(); space++)  spaces += " ";
+            suitableVents += desc + spaces + "\t";
             for (int q=1; q<7; q++){
-                suitableVents += Double.toString(Math.round(vent[p][q])) + "\t";
+                suitableVents += Double.toString(Math.round(vent[p][q])) + "  ";
             }
             suitableVents += "\n";
         }
@@ -450,10 +454,10 @@ public class Main {
         double V = 60;
         double S = 3;
         double T = 0.5;
-        int n = 1;
+        double n = 1;
         double sourceSpec[] = {50, 55, 65, 60, 50};
-        double IANLwin = 30;
-        double IANLvent = 30;
+        double IANLwin = 50;
+        double IANLvent = 50;
 
         String outputs = convert_prediction_to_String(V, S, T, n, sourceSpec, IANLwin, IANLvent);
         System.out.println(outputs);

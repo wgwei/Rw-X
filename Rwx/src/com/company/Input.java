@@ -1,14 +1,13 @@
 package com.company;
 
 import javax.swing.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import static com.company.Main.convert_checking_to_String;
+import static com.company.Main.convert_prediction_to_String;
 
 public class Input {
-    private JTabbedPane RoomInfo;
     private JPanel Input;
     private JTextField volumeM3TextField;
     private JTextField winAreaM2TextField;
@@ -18,7 +17,6 @@ public class Input {
     private JPanel RT;
     private JLabel NoOfVent;
     private JTextField noOfVentsTextField;
-    private JTabbedPane tabbedPane1;
     private JLabel dBviaWin;
     private JLabel dBviaVent;
     private JTextField noiseViaWindowDBTextField;
@@ -35,39 +33,47 @@ public class Input {
     private JTextField a1000TextField;
     private JTextField a2000TextField;
     private JPanel SourceSpectrum;
-    private JTabbedPane tabbedPane3;
     private JButton showResultsButton;
     private JButton exportButton;
-    private JTabbedPane tabbedPane4;
-    private JPanel ResultsPane;
     private JTextPane ShowGlaingResluts;
     private JTabbedPane tabbedPane5;
-    private JTextPane ShowVentResults;
+    private JTabbedPane tabbedPane1;
+    private JTabbedPane tabbedPane3;
+    private JScrollPane outputPane;
+    private JTextArea Results_pane;
+    private JTextArea displayArea;
+
 
     public Input() {
-        ShowGlaingResluts.addComponentListener(new ComponentAdapter() {
+        showResultsButton.addActionListener(new ActionListener() {
             @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    double Vdb, Sdb, RTdb, ndb, src125Str, src250Str, src500Str, src1kStr,src2kStr, Lwin, Lvent;
+                    Vdb = Double.parseDouble(volumeM3TextField.getText());
+                    Sdb = Double.parseDouble(winAreaM2TextField.getText());
+                    RTdb = Double.parseDouble(RTSTextField.getText());
+                    ndb = Double.parseDouble(noOfVentsTextField.getText());
+                    src125Str = Double.parseDouble(a125TextField.getText());
+                    src250Str = Double.parseDouble(a250TextField.getText());
+                    src500Str = Double.parseDouble(a500TextField.getText());
+                    src1kStr = Double.parseDouble(a1000TextField.getText());
+                    src2kStr = Double.parseDouble(a2000TextField.getText());
+                    Lwin = Double.parseDouble(noiseViaWindowDBTextField.getText());
+                    Lvent = Double.parseDouble(noiseViaVentDBTextField.getText());
+                    double [] sourceSpec = {src125Str, src250Str, src500Str, src1kStr, src2kStr};
+
+                    String outputs = convert_prediction_to_String(Vdb, Sdb, RTdb, ndb, sourceSpec, Lwin, Lvent);
+                    String checking = convert_checking_to_String(Vdb, Sdb, RTdb, ndb, sourceSpec, Lwin, Lvent);
+                    String total = outputs + checking;
+                    displayArea.setText(total);
+                    displayArea.setText(total);
+                }
+                catch (Exception ex){
+                    displayArea.setText("Not valid inputs!");
+                }
             }
-
         });
-        ShowGlaingResluts.setText("hello \n test ");
-        ShowGlaingResluts.setText("\nwww");
-    }
-
-    public static double sum(double numbers[]){
-        double result = 0.0;
-        for (double num : numbers)
-            result += num;
-        return result;
-    }
-
-    public static double getMax(double [] decMax) {
-        double max = decMax[0];
-        for (double elem : decMax)
-            max = Math.max(elem, max);
-        return max;
     }
 
     public static void main(String[] args) {
@@ -76,5 +82,9 @@ public class Input {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }
