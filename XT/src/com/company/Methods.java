@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Scanner;
 import javax.swing.*;
 
-public class Main {
+import com.company.GlazingData;
+import com.company.VentData;
+
+public class Methods {
 
     public static double sum(double numbers[]){
         double result = 0.0;
@@ -50,112 +53,6 @@ public class Main {
         double eng = 0;
         for (double s: spec) eng += Math.pow(10, s / 10);
         return 10*Math.log10(eng);
-    }
-
-    public static class readFilebyScanner{
-        private String glazingCSV = "res/glazing_info.csv";
-        private String ventCSV = "res/vent_info.csv";
-        private int numOfLines;
-        private int ngf=9;
-        private int numOfVentFile;
-        private Path gp = Paths.get("res/glazing_info.csv");
-        private Path vp = Paths.get("res/vent_info.csv");
-        String [] glassDescription;
-        String [] ventDescription;
-        double [][] glassPerformance;
-        double [][] ventPerformance;
-
-        public readFilebyScanner() throws IOException{
-            numOfLines = getNumOfLines(glazingCSV);
-            numOfVentFile = getNumOfLines(ventCSV);
-            String [][] glassStrData = readCSV(gp, numOfLines);
-            String [][] ventStrData = readCSV(vp, numOfVentFile);
-            glassDescription = getDescription(glassStrData);
-            ventDescription = getDescription(ventStrData);
-            glassPerformance = getPerformance(glassStrData);
-            ventPerformance = getPerformance(ventStrData);
-        }
-
-        public String[][] readCSV(Path filePath, int lineNum) throws IOException{
-            BufferedReader br = Files.newBufferedReader(filePath);
-            String line = br.readLine();
-            String [][] strData = new String[lineNum][ngf]; // description, Rw, Rw+C, Rw+Ctr, 125Hz to 2kHz
-            int n = 0;
-            while (line !=null){
-                String [] attributes = line.split(",");
-                for (int i=0; i<ngf; i++){
-                    strData[n][i] = attributes[i];
-                }
-                line = br.readLine();
-                n++;
-            }
-            return strData;
-        }
-
-        public String[] getDescription(String [][] strData){
-            String [] descripion = new String[strData.length-1];
-            for (int i=1; i<strData.length; i++){
-                descripion[i-1] = strData[i][0];
-            }
-            return descripion;
-        }
-
-        public double[][] getPerformance(String [][] strData){
-            double [][] perfromance = new double[strData.length-1][ngf];
-            for (int i=1; i<strData.length; i++){
-                for (int j=1; j<ngf; j++)
-                    perfromance[i-1][j-1] = Double.parseDouble(strData[i][j]);
-            }
-            return perfromance;
-        }
-
-        public static String [] readHistory() throws Exception{
-            String [] history = new String [11];
-            Scanner sc = new Scanner(new File("res/history.txt"));
-            for (int line=0; line<11; line++){
-                history[line] = sc.nextLine();
-            }
-            sc.close();
-            return history;
-        }
-
-        public String [] readDescription(String fileName) throws Exception {
-            // reading a text file line by line using Scanner
-            String[] description;
-            Scanner sc = new Scanner(new File(fileName));
-            numOfLines = getNumOfLines(fileName);
-
-            description = new String[numOfLines - 1];
-            for (int cnt=0; cnt<numOfLines; cnt++){
-                String str = sc.nextLine();
-                if (cnt>0){
-                    String [] values = str.split("\\s");
-                    description[cnt-1] = values[0];
-                }
-            }
-            sc.close();
-            return description;
-        }
-
-        public double [][] readPerformance(String fileName) throws Exception {
-            // reading a text file line by line using Scanner
-            Scanner sc = new Scanner(new File(fileName));
-            numOfLines = getNumOfLines(fileName);
-
-            double [][] numbers = new double [numOfLines-1][8]; // Rw,Rw+C, Rw+Ctr, 125, 250, 500, 1k, 2k
-
-            for (int cnt=0; cnt<numOfLines; cnt++){
-                String str = sc.nextLine();
-                if (cnt>0){
-                    String [] values = str.split("\\s");
-                    for (int i=1; i<values.length; i++){
-                        numbers[cnt - 1][i - 1] = Double.parseDouble(values[i]);
-                    }
-                }
-            }
-            sc.close();
-            return numbers;
-        }
     }
 
     public static class GeneralInputs{
@@ -302,11 +199,13 @@ public class Main {
         double [][] levelViaWin = new double [200][7]; // [0]: id; [1]: total; [2-5] octave
         double [][] levelViaVent = new double [200][7];
 
-        readFilebyScanner facade = new readFilebyScanner();
-        String glassDescription [] = facade.glassDescription;
-        double Ris[][] = facade.glassPerformance;
-        String ventDescription [] = facade.ventDescription;
-        double Dneis [][] = facade.ventPerformance;
+        GlazingData glass = new GlazingData();
+        VentData vent = new VentData();
+
+        String glassDescription [] = glass.glassDesc;
+        double Ris[][] = glass.glassPerf;
+        String ventDescription [] = vent.ventDesc;
+        double Dneis [][] = vent.ventPerf;
 
         public ShowOutputs(double V, double S, double T, double n, double[] sourceSpec, double IANLwin, double IANLvent) throws Exception {
 
@@ -482,7 +381,7 @@ public class Main {
 
         System.out.println(f.getCurrentDirectory());
         System.out.println(f.getSelectedFile());
-
+        JFileChooser fc = new JFileChooser();
 
     }
 }

@@ -8,9 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import  java.io.File;
 
-import static com.company.Main.convert_checking_to_String;
-import static com.company.Main.convert_prediction_to_String;
-import static com.company.Main.readFilebyScanner.readHistory;
+import static com.company.Methods.convert_checking_to_String;
+import static com.company.Methods.convert_prediction_to_String;
 
 public class Xw_Cx {
     private JPanel Input;
@@ -50,18 +49,17 @@ public class Xw_Cx {
 
     public Xw_Cx() {
         try {
-            String [] history = readHistory();
-            volumeM3TextField.setText(history[0]);
-            winAreaM2TextField.setText(history[1]);
-            RTSTextField.setText(history[2]);
-            noOfVentsTextField.setText(history[3]);
-            noiseViaWindowDBTextField.setText(history[4]);
-            noiseViaVentDBTextField.setText(history[5]);
-            a125TextField.setText(history[6]);
-            a250TextField.setText(history[7]);
-            a500TextField.setText(history[8]);
-            a1000TextField.setText(history[9]);
-            a2000TextField.setText(history[10]);
+            volumeM3TextField.setText("50");
+            winAreaM2TextField.setText("3");
+            RTSTextField.setText("0.5");
+            noOfVentsTextField.setText("1");
+            noiseViaWindowDBTextField.setText("35");
+            noiseViaVentDBTextField.setText("35");
+            a125TextField.setText("55");
+            a250TextField.setText("55");
+            a500TextField.setText("55");
+            a1000TextField.setText("55");
+            a2000TextField.setText("55");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,6 +124,7 @@ public class Xw_Cx {
 
                     fc.showSaveDialog(null);
                     fc.getSelectedFile();
+                    fc.getCurrentDirectory();
 
                     PrintWriter pw = new PrintWriter(new File(fc.getSelectedFile()+".CSV"));
                     pw.write(inputs+total);
@@ -146,12 +145,12 @@ public class Xw_Cx {
         frame.pack();
         frame.setLocationRelativeTo(null);  // *** this will center your app ***
         frame.setVisible(true);
-        try {
-            frame.setIconImage(ImageIO.read(new File("res/icon.png")));
-        }
-        catch (IOException exc) {
-            exc.printStackTrace();
-        }
+//        try {
+//            frame.setIconImage(ImageIO.read(new File("res/icon.png")));
+//        }
+//        catch (IOException exc) {
+//            exc.printStackTrace();
+//        }
     }
 
     private void createUIComponents() {
