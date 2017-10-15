@@ -35,19 +35,6 @@ public class Methods {
         return max;
     }
 
-    /**
-     *
-     * @param fileName is a .txt or a .csv file name, e.g: "mydata.txt"; or "mydata.csv"
-     * @return number of lines
-     * @throws IOException
-     */
-    public static int getNumOfLines(String fileName) throws IOException{
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        int lines = 0;
-        while (reader.readLine() != null) lines++;
-        reader.close();
-        return lines;
-    }
 
     public static double logsum(double[] spec){
         double eng = 0;
@@ -221,13 +208,6 @@ public class Methods {
             levelViaWin = find_suitable_glass();
             levelViaVent = find_suitable_vent();
         }
-
-        public void testPassing(){
-            System.out.println("\n\n from here");
-            System.out.println(V);
-            for (double s: super.sourceSpec) System.out.println(s);
-        }
-
 
         public double[][] find_suitable_glass() throws Exception {
             int dataLen = glassDescription.length;
